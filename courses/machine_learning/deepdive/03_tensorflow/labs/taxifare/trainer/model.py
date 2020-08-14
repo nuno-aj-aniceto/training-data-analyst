@@ -22,7 +22,7 @@ import tensorflow as tf
 import numpy as np
 import shutil
 
-tf.logging.set_verbosity(tf.logging.INFO)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 
 # List the CSV columns
 CSV_COLUMNS = ['fare_amount', 'pickuplon','pickuplat','dropofflon','dropofflat','passengers', 'key']
@@ -55,11 +55,14 @@ feature_cols = add_more_features(INPUT_COLUMNS)
 # Create your serving input function so that your trained model will be able to serve predictions
 def serving_input_fn():
     feature_placeholders = {
-        column.name: tf.placeholder(tf.float32, [None]) for column in INPUT_COLUMNS
+        column.name: tf.compat.v1.placeholder(tf.float32, [None]) for column in INPUT_COLUMNS
     }
 
     features = feature_placeholders
     return tf.estimator.export.ServingInputReceiver(features, feature_placeholders)
 
 # Create an estimator that we are going to train and evaluate
-# TODO: Create tf.estimator.DNNRegressor train and evaluate function passing args['parsed_argument'] from task.py
+def train_and_evaluate(args):
+    tf.compat.v1.summary.FileWriterCache.clear() # ensure filewriter cache is clear for TensorBoard events file
+
+    # TODO: Create tf.estimator.DNNRegressor train and evaluate function passing args['parsed_argument'] from task.py

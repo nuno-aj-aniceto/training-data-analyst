@@ -1,1 +1,4 @@
 preproc
+cnn_trained
+largemachine.yaml
+*.egg-info
