@@ -19,7 +19,7 @@ echo "Creating App Engine app"
 gcloud app create --region "us-central"
 
 echo "Making bucket: gs://$GCLOUD_BUCKET"
-gsutil mb gs://$GCLOUD_BUCKET
+gcloud storage buckets create gs://$GCLOUD_BUCKET
 
 echo "Installing dependencies"
 npm install
@@ -28,8 +28,9 @@ echo "Creating Datastore entities"
 node setup/add_entities.js
 
 echo "Creating Cloud Pub/Sub topics"
-gcloud beta pubsub topics create feedback
-gcloud beta pubsub topics create answers
+gcloud pubsub topics create feedback
+gcloud pubsub subscriptions create worker-subscription --topic=feedback
+gcloud pubsub topics create answers
 
 echo "Creating Cloud Spanner Instance, Database, and Tables"
 gcloud spanner instances create quiz-instance --config=regional-us-central1 --description="Quiz instance" --nodes=1

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # Copyright 2017 Google Inc. All Rights Reserved.
 #
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 import shutil
 
@@ -34,16 +34,16 @@ def read_dataset(filename, mode, batch_size = 512):
     def _input_fn():
         def decode_csv(value_column):
             columns = tf.decode_csv(value_column, record_defaults = DEFAULTS)
-            features = dict(zip(CSV_COLUMNS, columns))
+            features = dict(list(zip(CSV_COLUMNS, columns)))
             label = features.pop(LABEL_COLUMN)
             return features, label
-    
+
         # Create list of files that match pattern
         file_list = tf.gfile.Glob(filename)
 
         # Create dataset from file list
         dataset = tf.data.TextLineDataset(file_list).map(decode_csv)
-        
+
         if mode == tf.estimator.ModeKeys.TRAIN:
             num_epochs = None # indefinitely
             dataset = dataset.shuffle(buffer_size = 10 * batch_size)
@@ -75,10 +75,7 @@ def serving_input_fn():
     feature_placeholders = {
         column.name: tf.placeholder(tf.float32, [None]) for column in INPUT_COLUMNS
     }
-    features = {
-        key: tf.expand_dims(tensor, -1)
-        for key, tensor in feature_placeholders.items()
-    }
+    features = feature_placeholders
     return tf.estimator.export.ServingInputReceiver(features, feature_placeholders)
 
 # Create an estimator that we are going to train and evaluate

@@ -15,7 +15,7 @@ echo "Creating App Engine app"
 gcloud app create --region "us-central"
 
 echo "Making bucket: gs://$DEVSHELL_PROJECT_ID-media"
-gsutil mb gs://$DEVSHELL_PROJECT_ID-media
+gcloud storage buckets create gs://$DEVSHELL_PROJECT_ID-media
 
 echo "Exporting GCLOUD_PROJECT and GCLOUD_BUCKET"
 export GCLOUD_PROJECT=$DEVSHELL_PROJECT_ID
@@ -38,7 +38,7 @@ echo "Enabling Cloud Functions API"
 gcloud beta services enable cloudfunctions.googleapis.com
 
 echo "Creating Cloud Function"
-gcloud beta functions deploy process-feedback --trigger-topic feedback --source ./function --stage-bucket $GCLOUD_BUCKET --entry-point subscribe
+gcloud beta functions deploy process-feedback --runtime nodejs8 --trigger-topic feedback --source ./function --stage-bucket $GCLOUD_BUCKET --entry-point subscribe
 
 echo "Deploying to App Engine"
 sed -i -e "s/\[GCLOUD_PROJECT\]/$DEVSHELL_PROJECT_ID/g" ./src/main/appengine/app.yaml

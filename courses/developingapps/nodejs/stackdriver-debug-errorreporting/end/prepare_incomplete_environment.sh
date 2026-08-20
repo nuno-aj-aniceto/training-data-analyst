@@ -19,7 +19,7 @@ echo "Creating App Engine app"
 gcloud app create --region "us-central"
 
 echo "Making bucket: gs://$GCLOUD_BUCKET"
-gsutil mb gs://$GCLOUD_BUCKET
+gcloud storage buckets create gs://$GCLOUD_BUCKET
 
 echo "Installing dependencies"
 npm install
@@ -38,6 +38,6 @@ echo "Enabling Cloud Functions API"
 gcloud beta services enable cloudfunctions.googleapis.com
 
 echo "NOT Creating Cloud Function"
-# gcloud beta functions deploy process-feedback --trigger-topic feedback --source ./function --stage-bucket $GCLOUD_BUCKET --entry-point subscribe
+# gcloud beta functions deploy process-feedback --runtime nodejs8 --trigger-topic feedback --source ./function --stage-bucket $GCLOUD_BUCKET --entry-point subscribe
 
 echo "Project ID: $DEVSHELL_PROJECT_ID"

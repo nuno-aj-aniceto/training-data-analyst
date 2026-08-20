@@ -24,7 +24,7 @@ def create_queries():
       mother_age,
       CAST(plurality AS STRING) AS plurality,
       gestation_weeks,
-      ABS(FARM_FINGERPRINT(CONCAT(CAST(YEAR AS STRING), CAST(month AS STRING)))) AS hashmonth
+      FARM_FINGERPRINT(CONCAT(CAST(YEAR AS STRING), CAST(month AS STRING))) AS hashmonth
     FROM
       publicdata.samples.natality
     WHERE
@@ -42,7 +42,7 @@ def create_queries():
       mother_age,
       IF(plurality > 1, 'Multiple', 'Single') AS plurality,
       gestation_weeks,
-      ABS(FARM_FINGERPRINT(CONCAT(CAST(YEAR AS STRING), CAST(month AS STRING)))) AS hashmonth
+      FARM_FINGERPRINT(CONCAT(CAST(YEAR AS STRING), CAST(month AS STRING))) AS hashmonth
     FROM
       publicdata.samples.natality
     WHERE
@@ -69,8 +69,8 @@ def create_queries():
       preprocessed
   """
 
-  train_query = "{} WHERE MOD(hashmonth, 4) < 3".format(query_all)
-  eval_query  = "{} WHERE MOD(hashmonth, 4) = 3".format(query_all)
+  train_query = "{} WHERE ABS(MOD(hashmonth, 4)) < 3".format(query_all)
+  eval_query  = "{} WHERE ABS(MOD(hashmonth, 4)) = 3".format(query_all)
   return train_query, eval_query
 
 def query_to_dataframe(query):
@@ -138,5 +138,5 @@ def save_model(estimator, gcspath, name):
   joblib.dump(estimator, model)
   model_path = os.path.join(gcspath, datetime.datetime.now().strftime(
     'export_%Y%m%d_%H%M%S'), model)
-  subprocess.check_call(['gsutil', 'cp', model, model_path])
+  subprocess.check_call(['gcloud', 'storage', 'cp', model, model_path])
   return model_path

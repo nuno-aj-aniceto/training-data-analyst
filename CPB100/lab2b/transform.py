@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2016 Google Inc.
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
@@ -8,13 +8,16 @@
 # See https://github.com/GoogleCloudPlatform/datalab-samples/blob/master/basemap/earthquakes.ipynb for a notebook that illustrates this code
 
 import csv
-import urllib2
-import cStringIO
+import requests
+import io
 import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+
+# Cartopy imports
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
 # Classes to hold the data
 class EarthQuake:
@@ -30,8 +33,8 @@ class EarthQuake:
     
 def get_earthquake_data(url):
   # Read CSV earthquake data from USGS
-  response = urllib2.urlopen(url)
-  csvio = cStringIO.StringIO(response.read())
+  response = requests.get(url)
+  csvio = io.StringIO(response.text)
   reader = csv.reader(csvio)
   header = next(reader)
   quakes = [EarthQuake(row) for row in reader]
@@ -52,37 +55,88 @@ def get_marker(magnitude):
         return ('ro'), markersize
 
 
-def create_png(url, outfile): 
-  quakes = get_earthquake_data('http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.csv')
-  print quakes[0].__dict__
+def create_png(url, outfile):
 
-  # Set up Basemap
-  mpl.rcParams['figure.figsize'] = '16, 12'
-  m = Basemap(projection='kav7', lon_0=-90, resolution = 'l', area_thresh = 1000.0)
-  m.drawcoastlines()
-  m.drawcountries()
-  m.drawmapboundary(fill_color='0.3')
-  m.drawparallels(np.arange(-90.,99.,30.))
-  junk = m.drawmeridians(np.arange(-180.,180.,60.))
+    quakes = get_earthquake_data(url)
 
-  # sort earthquakes by magnitude so that weaker earthquakes
-  # are plotted after (i.e. on top of) stronger ones
-  # the stronger quakes have bigger circles, so we'll see both
-  start_day = quakes[-1].timestamp[:10]
-  end_day = quakes[0].timestamp[:10]
-  quakes.sort(key=lambda q: q.magnitude, reverse=True)
+    print(quakes[0].__dict__)
 
-  # add earthquake info to the plot
-  for q in quakes:
-    x,y = m(q.lon, q.lat)
-    mcolor, msize = get_marker(q.magnitude)
-    m.plot(x, y, mcolor, markersize=msize)
+    # Set up Cartopy
+    mpl.rcParams['figure.figsize'] = (16, 12)
 
-  # add a title
-  plt.title("Earthquakes {0} to {1}".format(start_day, end_day))
-  plt.savefig(outfile)
+    fig = plt.figure()
+
+    ax = plt.axes(
+        projection=ccrs.Robinson(central_longitude=-90)
+    )
+
+    ax.set_global()
+
+    # background color
+    ax.set_facecolor('0.3')
+
+    # map features
+    ax.coastlines()
+
+    ax.add_feature(
+        cfeature.BORDERS,
+        linewidth=0.5
+    )
+
+    # gridlines
+    gl = ax.gridlines(
+        draw_labels=False,
+        linewidth=0.5,
+        color='gray',
+        alpha=0.5,
+        linestyle='--'
+    )
+
+    gl.xlocator = plt.FixedLocator(
+        np.arange(-180., 180., 60.)
+    )
+
+    gl.ylocator = plt.FixedLocator(
+        np.arange(-90., 90., 30.)
+    )
+
+    # sort earthquakes by magnitude
+    # stronger quakes plotted first
+    start_day = quakes[-1].timestamp[:10]
+    end_day = quakes[0].timestamp[:10]
+
+    quakes.sort(
+        key=lambda q: q.magnitude,
+        reverse=True
+    )
+
+    # add earthquake info to the plot
+    for q in quakes:
+
+        mcolor, msize = get_marker(q.magnitude)
+
+        ax.plot(
+            q.lon,
+            q.lat,
+            mcolor,
+            markersize=msize,
+            transform=ccrs.PlateCarree()
+        )
+
+    # add title
+    plt.title(
+        "Earthquakes {0} to {1}".format(
+            start_day,
+            end_day
+        )
+    )
+
+    plt.savefig(
+        outfile,
+        bbox_inches='tight'
+    )
 
 if __name__ == '__main__':
-  url = 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.csv'
+  url = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.csv'
   outfile = 'earthquakes.png'
   create_png(url, outfile)

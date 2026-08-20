@@ -32,15 +32,14 @@ N_INPUTS = None
 def init(hparams):
     global SEQ_LEN, DEFAULTS, N_INPUTS
     SEQ_LEN = hparams['sequence_length']
-    DEFAULTS = [[0.0] for x in xrange(0, SEQ_LEN)]
+    DEFAULTS = [[0.0] for x in range(0, SEQ_LEN)]
     N_INPUTS = SEQ_LEN - N_OUTPUTS
 
 
 def linear_model(features, mode, params):
     X = features[TIMESERIES_COL]
-    predictions = tf.layers.dense(X, 1, activation=None)
-    return predictions
-
+    #TODO: finish linear model
+    pass
 
 def dnn_model(features, mode, params):
   X = features[TIMESERIES_COL]
@@ -210,6 +209,7 @@ def sequence_regressor(features, labels, mode, params):
 
 
 def train_and_evaluate(output_dir, hparams):
+    tf.summary.FileWriterCache.clear() # ensure filewriter cache is clear for TensorBoard events file
     get_train = read_dataset(hparams['train_data_path'],
                              tf.estimator.ModeKeys.TRAIN,
                              hparams['train_batch_size'])

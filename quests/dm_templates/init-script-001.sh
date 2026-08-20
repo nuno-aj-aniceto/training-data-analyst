@@ -15,8 +15,8 @@
 
 # Example of copying sample data files from a bucket
 #
-# gsutil cp gs://cloud-training/gcpdei/road-not-taken.txt .
-# gsutil cp gs://cloud-training/gcpdei/sherlock-holmes.txt .
+# gcloud storage cp gs://cloud-training/gcpdei/road-not-taken.txt .
+# gcloud storage cp gs://cloud-training/gcpdei/sherlock-holmes.txt .
 
 # Example of enabling a GCP API
 #
@@ -27,7 +27,7 @@
 #
 # Install Apache Beam for Python
 #  apt-get install python-pip -y
-#  pip install google-cloud-dataflow oauth2client==3.0.0 
+#  pip install apache-beam[gcp] oauth2client==3.0.0 
 #  pip install --force six==1.10  # downgrade as 1.11 breaks apitools
 #  pip install -U pip
 #  pip -V
